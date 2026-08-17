@@ -104,3 +104,9 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+/Assets/ケリュドラmmd6
+Assets/ケリュドラmmd6.meta
+Assets/ケリュドラ復元プロジェクト_MANKOマージ_MMD6.fbx
+Assets/ケリュドラ復元プロジェクト_MANKOマージ_MMD6.fbx.meta
+Assets/Scenes/LocalTest.unity.meta
+Assets/Scenes/LocalTest.unity
