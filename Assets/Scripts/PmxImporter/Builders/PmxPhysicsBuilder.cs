@@ -9,26 +9,18 @@ namespace MMDPlayerForVR.PmxImporter.Builders
         private const float MinColliderSize = 0.0001f;
         private const float RadiansToDegrees = 57.2957795f;
 
-        public void Build(PmxDocument doc, Transform armatureRoot)
+        public void Build(PmxDocument doc, Transform armatureRoot, Transform[] boneTransforms)
         {
             Dictionary<int, Rigidbody> bodyMap = new Dictionary<int, Rigidbody>();
-            Transform[] bones = armatureRoot.GetComponentsInChildren<Transform>(true);
-            
-            // To map by index, we assume armatureRoot's children were generated in the exact same order 
-            // as doc.Bones by PmxBoneBuilder. Thus, we can build a flat array or rely on name matching.
-            // PmxBoneBuilder generates exactly the same names and hierarchy, but keeping a direct index array is safer.
-            // Since we don't have the array passed directly, we'll map by name as a fallback or assume order.
-            Dictionary<string, Transform> boneMap = new Dictionary<string, Transform>();
-            foreach(var t in bones) boneMap[t.name] = t;
 
             // 1. Rigidbodies
             for (int i = 0; i < doc.RigidBodies.Length; i++)
             {
                 var rbData = doc.RigidBodies[i];
-                if (rbData.RelatedBoneIndex < 0 || rbData.RelatedBoneIndex >= doc.Bones.Length) continue;
+                if (rbData.RelatedBoneIndex < 0 || rbData.RelatedBoneIndex >= boneTransforms.Length) continue;
 
-                string boneName = doc.Bones[rbData.RelatedBoneIndex].Name;
-                if (!boneMap.TryGetValue(boneName, out Transform boneTransform))
+                Transform boneTransform = boneTransforms[rbData.RelatedBoneIndex];
+                if (boneTransform == null)
                 {
                     Debug.LogWarning($"[PmxPhysicsBuilder] Bone not found for RigidBody: {rbData.Name}");
                     continue;
@@ -60,8 +52,8 @@ namespace MMDPlayerForVR.PmxImporter.Builders
                 ConfigurableJoint joint = go.AddComponent<ConfigurableJoint>();
                 joint.connectedBody = connectedBody;
                 
-                // MMD coordinate conversion (Z invert)
-                Vector3 anchor = new Vector3(jData.Position.x, jData.Position.y, -jData.Position.z);
+                // MMD and Unity are both Left-Handed. No Z inversion needed.
+                Vector3 anchor = jData.Position;
                 joint.anchor = targetBody.transform.InverseTransformPoint(anchor);
 
                 // TODO: Properly convert Spring limits and rotation for Unity Left-Handed
@@ -102,7 +94,7 @@ namespace MMDPlayerForVR.PmxImporter.Builders
             if (collider != null)
             {
                 // MMD coordinate conversion
-                collider.bounds.Encapsulate(new Vector3(rbData.Position.x, rbData.Position.y, -rbData.Position.z));
+                collider.bounds.Encapsulate(rbData.Position);
             }
         }
     }

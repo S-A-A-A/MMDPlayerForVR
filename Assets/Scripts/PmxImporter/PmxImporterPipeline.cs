@@ -7,9 +7,9 @@ using MMDPlayerForVR.PmxImporter.Parsers;
 namespace MMDPlayerForVR.PmxImporter
 {
     public interface IPmxMeshBuilder { Task<Mesh> BuildAsync(PmxDocument doc); }
-    public interface IPmxBoneBuilder { Task<(Transform root, Transform[] bones)> BuildAsync(PmxDocument doc); }
+    public interface IPmxBoneBuilder { Task<(Transform root, Transform[] bones, Matrix4x4[] bindposes)> BuildAsync(PmxDocument doc); }
     public interface IPmxMaterialBuilder { Task<Material[]> BuildAsync(PmxDocument doc, string basePath); }
-    public interface IPmxPhysicsBuilder { void Build(PmxDocument doc, Transform armatureRoot); }
+    public interface IPmxPhysicsBuilder { void Build(PmxDocument doc, Transform armatureRoot, Transform[] boneTransforms); }
 
     public class PmxImporterPipeline
     {
@@ -44,9 +44,16 @@ namespace MMDPlayerForVR.PmxImporter
                 var boneResult = await _boneBuilder.BuildAsync(doc);
                 Transform rootBone = boneResult.root;
                 Transform[] boneTransforms = boneResult.bones;
+                Matrix4x4[] bindposes = boneResult.bindposes;
 
                 // Stage 2: Build Mesh (Main Thread/Coroutine)
                 Mesh mesh = await _meshBuilder.BuildAsync(doc);
+
+                // bindposes must be set BEFORE assigning the mesh to SkinnedMeshRenderer.
+                // Without this, Unity cannot correctly compute skinning transforms,
+                // which causes the mesh Bounds to be calculated incorrectly at origin,
+                // leading to erroneous frustum culling (model disappears unexpectedly).
+                mesh.bindposes = bindposes;
 
                 // Stage 4: Build Materials (Main Thread/Coroutine)
                 string basePath = System.IO.Path.GetDirectoryName(filePath);
@@ -61,9 +68,12 @@ namespace MMDPlayerForVR.PmxImporter
                 smr.sharedMaterials = materials;
                 smr.rootBone = rootBone;
                 smr.bones = boneTransforms;
+                // Disable off-screen culling until bindposes produce accurate Bounds.
+                // This ensures the model is always rendered regardless of camera frustum.
+                smr.updateWhenOffscreen = true;
 
                 // Stage 5: Build Physics (Main Thread)
-                _physicsBuilder.Build(doc, rootBone);
+                _physicsBuilder.Build(doc, rootBone, boneTransforms);
 
                 return rootObj;
             }
