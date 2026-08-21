@@ -24,10 +24,11 @@ namespace MMDPlayerForVR.PmxImporter.Builders
             for (int i = 0; i < doc.Vertices.Length; i++)
             {
                 var v = doc.Vertices[i];
-                // Invert Z for Unity Left-Handed coordinates
-                vertices[i] = new Vector3(v.Position.x, v.Position.y, -v.Position.z);
-                normals[i] = new Vector3(v.Normal.x, v.Normal.y, -v.Normal.z);
-                uvs[i] = v.Uv;
+                // MMD and Unity are both Left-Handed, Y-Up, Z-Forward. No Z inversion needed!
+                vertices[i] = v.Position;
+                normals[i] = v.Normal;
+                // MMD UV origin is Top-Left, Unity is Bottom-Left. Invert V.
+                uvs[i] = new Vector2(v.Uv.x, 1.0f - v.Uv.y);
 
                 boneWeights[i] = CreateBoneWeight(v);
             }
@@ -50,10 +51,10 @@ namespace MMDPlayerForVR.PmxImporter.Builders
                 for (int f = 0; f < surfaceFaceCount; f++)
                 {
                     var face = doc.Faces[faceIndexOffset + f];
-                    // Invert winding order due to Z inversion
+                    // Z is not inverted, so winding order remains the same as PMX
                     triangles[f * 3 + 0] = face.VertexIndices[0];
-                    triangles[f * 3 + 1] = face.VertexIndices[2];
-                    triangles[f * 3 + 2] = face.VertexIndices[1];
+                    triangles[f * 3 + 1] = face.VertexIndices[1];
+                    triangles[f * 3 + 2] = face.VertexIndices[2];
                 }
 
                 mesh.SetTriangles(triangles, m);

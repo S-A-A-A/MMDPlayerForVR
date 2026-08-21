@@ -45,6 +45,32 @@ namespace MMDPlayerForVR.PmxImporter.Builders
                     mat.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);
                 }
 
+                // Handle transparency and alpha clipping
+                // Simple heuristic: if alpha < 1, it's semi-transparent.
+                // Otherwise, enable cutout by default since MMD heavily uses it for hair/eyelashes.
+                bool isTransparent = pmxMat.Diffuse.a < 0.99f;
+                bool isCutout = true;
+
+                if (isTransparent)
+                {
+                    // URP Transparent Setup
+                    mat.SetFloat("_Surface", 1.0f); // 1 = Transparent
+                    mat.SetFloat("_Blend", 0.0f);   // 0 = Alpha
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                }
+                else if (isCutout)
+                {
+                    // URP Cutout (AlphaTest) Setup
+                    mat.SetFloat("_AlphaClip", 1.0f);
+                    mat.SetFloat("_Cutoff", 0.5f);
+                    mat.EnableKeyword("_ALPHATEST_ON");
+                    mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                }
+
                 materials[i] = mat;
             }
 
