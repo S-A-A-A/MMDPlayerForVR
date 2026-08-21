@@ -1,0 +1,69 @@
+---
+
+PMX physics conversion failed: System.IO.InvalidDataException: Invalid PMX text length: -16776703
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadText () [0x00011] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:61 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.SkipMaterials (MMDPlayerForVR.PmxPhysics.PmxBinaryReader reader, System.Int32 textureIndexSize) [0x00056] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:146 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.Read (System.String filePath) [0x00066] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:32 
+  at PMXPhysicsToUnityConverterWindow.Apply () [0x00002] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Editor\PMXPhysicsToUnityConverterWindow.cs:50 
+UnityEngine.Debug:LogError (object)
+PMXPhysicsToUnityConverterWindow:Apply () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:56)
+PMXPhysicsToUnityConverterWindow:OnGUI () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:40)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+---
+
+PMX physics conversion failed: System.IO.InvalidDataException: Invalid PMX text length: -16776959
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadText () [0x00011] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:61 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.SkipMaterials (MMDPlayerForVR.PmxPhysics.PmxBinaryReader reader, System.Int32 textureIndexSize) [0x00056] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:146 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.Read (System.String filePath) [0x00066] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:32 
+  at PMXPhysicsToUnityConverterWindow.Apply () [0x00002] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Editor\PMXPhysicsToUnityConverterWindow.cs:50 
+UnityEngine.Debug:LogError (object)
+PMXPhysicsToUnityConverterWindow:Apply () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:56)
+PMXPhysicsToUnityConverterWindow:OnGUI () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:40)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+---
+
+PMX physics conversion failed: System.IO.InvalidDataException: Invalid PMX text length: -1113686837 at byte 3794671.
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadText () [0x00018] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:62 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.ReadBoneNames (MMDPlayerForVR.PmxPhysics.PmxBinaryReader reader, System.Int32 boneIndexSize, System.Collections.Generic.List`1[System.String]& names, System.Collections.Generic.List`1[System.String]& namesEnglish) [0x00020] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:159 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.Read (System.String filePath) [0x00074] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:33 
+  at PMXPhysicsToUnityConverterWindow.Apply () [0x00002] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Editor\PMXPhysicsToUnityConverterWindow.cs:50 
+UnityEngine.Debug:LogError (object)
+PMXPhysicsToUnityConverterWindow:Apply () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:56)
+PMXPhysicsToUnityConverterWindow:OnGUI () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:40)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+---
+
+PMX physics conversion failed: System.IO.EndOfStreamException: Unable to read beyond the end of the stream.
+  at System.IO.__Error.EndOfFile () [0x0000a] in <4449e9424e7e4d4d81a660907c68cb97>:0 
+  at System.IO.BinaryReader.FillBuffer (System.Int32 numBytes) [0x0007a] in <4449e9424e7e4d4d81a660907c68cb97>:0 
+  at System.IO.BinaryReader.ReadInt32 () [0x00026] in <4449e9424e7e4d4d81a660907c68cb97>:0 
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadInt32 () [0x00001] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:33 
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadText () [0x00008] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:59 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.ReadBoneNames (MMDPlayerForVR.PmxPhysics.PmxBinaryReader reader, System.Int32 boneIndexSize, System.Collections.Generic.List`1[System.String]& names, System.Collections.Generic.List`1[System.String]& namesEnglish) [0x0002e] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:160 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.Read (System.String filePath) [0x00074] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:33 
+  at PMXPhysicsToUnityConverterWindow.Apply () [0x00002] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Editor\PMXPhysicsToUnityConverterWindow.cs:50 
+UnityEngine.Debug:LogError (object)
+PMXPhysicsToUnityConverterWindow:Apply () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:56)
+PMXPhysicsToUnityConverterWindow:OnGUI () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:40)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+---
+
+PMX physics conversion failed: System.IO.EndOfStreamException: Unable to read beyond the end of the stream.
+  at System.IO.__Error.EndOfFile () [0x0000a] in <4449e9424e7e4d4d81a660907c68cb97>:0 
+  at System.IO.BinaryReader.FillBuffer (System.Int32 numBytes) [0x0007a] in <4449e9424e7e4d4d81a660907c68cb97>:0 
+  at System.IO.BinaryReader.ReadInt32 () [0x00026] in <4449e9424e7e4d4d81a660907c68cb97>:0 
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadInt32 () [0x00001] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:33 
+  at MMDPlayerForVR.PmxPhysics.PmxBinaryReader.ReadText () [0x00008] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxBinaryReader.cs:59 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.SkipMorphs (MMDPlayerForVR.PmxPhysics.PmxBinaryReader reader, System.Int32 vertexIndexSize, System.Int32 boneIndexSize, System.Int32 materialIndexSize, System.Int32 morphIndexSize, System.Int32 rigidBodyIndexSize) [0x00017] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:217 
+  at MMDPlayerForVR.PmxPhysics.PmxPhysicsReader.Read (System.String filePath) [0x00086] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxPhysics\PmxPhysicsReader.cs:34 
+  at PMXPhysicsToUnityConverterWindow.Apply () [0x00002] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Editor\PMXPhysicsToUnityConverterWindow.cs:50 
+UnityEngine.Debug:LogError (object)
+PMXPhysicsToUnityConverterWindow:Apply () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:56)
+PMXPhysicsToUnityConverterWindow:OnGUI () (at Assets/Editor/PMXPhysicsToUnityConverterWindow.cs:40)
+UnityEngine.GUIUtility:ProcessEvent (int,intptr,bool&)
+
+---
