@@ -20,10 +20,10 @@ namespace MMDPlayerForVR.PmxImporter
         private readonly IPmxPhysicsBuilder _physicsBuilder;
 
         public PmxImporterPipeline(
-            PmxParser parser, 
-            IPmxMeshBuilder meshBuilder, 
-            IPmxBoneBuilder boneBuilder, 
-            IPmxMaterialBuilder materialBuilder, 
+            PmxParser parser,
+            IPmxMeshBuilder meshBuilder,
+            IPmxBoneBuilder boneBuilder,
+            IPmxMaterialBuilder materialBuilder,
             IPmxPhysicsBuilder physicsBuilder)
         {
             _parser = parser;
@@ -61,6 +61,8 @@ namespace MMDPlayerForVR.PmxImporter
 
                 // Assemble GameObject
                 GameObject rootObj = new GameObject(doc.Name);
+                // Convert MMD scale to Unity scale (1/10th)
+                rootObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
                 rootBone.SetParent(rootObj.transform, false);
 
                 SkinnedMeshRenderer smr = rootObj.AddComponent<SkinnedMeshRenderer>();
