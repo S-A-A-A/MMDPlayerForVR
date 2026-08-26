@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using MMDPlayerForVR.PmxImporter.Core;
 using MMDPlayerForVR.PmxImporter.Parsers;
+using MMDPlayerForVR.Services;
 
 namespace MMDPlayerForVR.PmxImporter
 {
@@ -18,19 +19,23 @@ namespace MMDPlayerForVR.PmxImporter
         private readonly IPmxBoneBuilder _boneBuilder;
         private readonly IPmxMaterialBuilder _materialBuilder;
         private readonly IPmxPhysicsBuilder _physicsBuilder;
+        private readonly PlayerLogService _logService;
 
+        [VContainer.Inject]
         public PmxImporterPipeline(
             PmxParser parser,
             IPmxMeshBuilder meshBuilder,
             IPmxBoneBuilder boneBuilder,
             IPmxMaterialBuilder materialBuilder,
-            IPmxPhysicsBuilder physicsBuilder)
+            IPmxPhysicsBuilder physicsBuilder,
+            PlayerLogService logService)
         {
             _parser = parser;
             _meshBuilder = meshBuilder;
             _boneBuilder = boneBuilder;
             _materialBuilder = materialBuilder;
             _physicsBuilder = physicsBuilder;
+            _logService = logService;
         }
 
         public async Task<GameObject> ImportAsync(string filePath)
@@ -38,15 +43,27 @@ namespace MMDPlayerForVR.PmxImporter
             try
             {
                 // Stage 1: Parse Binary (Background Thread)
+                if (_logService != null)
+                {
+                    _logService.Log("Parsing PMX binary...");
+                }
                 PmxDocument doc = await _parser.ParseAsync(filePath);
 
                 // Stage 3: Build Bones (Main Thread/Coroutine)
+                if (_logService != null)
+                {
+                    _logService.Log("Building bones...");
+                }
                 var boneResult = await _boneBuilder.BuildAsync(doc);
                 Transform rootBone = boneResult.root;
                 Transform[] boneTransforms = boneResult.bones;
                 Matrix4x4[] bindposes = boneResult.bindposes;
 
                 // Stage 2: Build Mesh (Main Thread/Coroutine)
+                if (_logService != null)
+                {
+                    _logService.Log("Building mesh...");
+                }
                 Mesh mesh = await _meshBuilder.BuildAsync(doc);
 
                 // bindposes must be set BEFORE assigning the mesh to SkinnedMeshRenderer.
@@ -56,10 +73,18 @@ namespace MMDPlayerForVR.PmxImporter
                 mesh.bindposes = bindposes;
 
                 // Stage 4: Build Materials (Main Thread/Coroutine)
+                if (_logService != null)
+                {
+                    _logService.Log("Building materials...");
+                }
                 string basePath = System.IO.Path.GetDirectoryName(filePath);
                 Material[] materials = await _materialBuilder.BuildAsync(doc, basePath);
 
                 // Assemble GameObject
+                if (_logService != null)
+                {
+                    _logService.Log("Assembling GameObject...");
+                }
                 GameObject rootObj = new GameObject(doc.Name);
                 // Convert MMD scale to Unity scale (1/10th)
                 rootObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
@@ -75,12 +100,24 @@ namespace MMDPlayerForVR.PmxImporter
                 smr.updateWhenOffscreen = true;
 
                 // Stage 5: Build Physics (Main Thread)
+                if (_logService != null)
+                {
+                    _logService.Log("Building physics...");
+                }
                 _physicsBuilder.Build(doc, rootBone, boneTransforms);
 
+                if (_logService != null)
+                {
+                    _logService.Log("Model import completed successfully!");
+                }
                 return rootObj;
             }
             catch (Exception ex)
             {
+                if (_logService != null)
+                {
+                    _logService.LogError($"Failed to import {filePath}");
+                }
                 Debug.LogError($"[PmxImporter] Failed to import {filePath}: {ex.Message}\n{ex.StackTrace}");
                 return null;
             }
