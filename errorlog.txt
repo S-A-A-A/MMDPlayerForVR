@@ -1,0 +1,23 @@
+[PmxImporter] Failed to import C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets/mmdModels/ケリュドラ/ケリュドラ復元プロジェクト_MANKOマージ前_クリーンデータ.pmx: There is no 'Rigidbody' attached to the "下半身" game object, but a script is trying to access it.
+You probably need to add a Rigidbody to the game object "下半身". Or your script needs to check if the component is attached before using it.
+  at UnityEngine.Object+MarshalledUnityObject.TryThrowEditorNullExceptionObject (UnityEngine.Object unityObj, System.String parameterName) [0x000cd] in <41ac6e8c05744e2a820a469a0121192b>:0 
+  at UnityEngine.Bindings.ThrowHelper.ThrowNullReferenceException (System.Object obj) [0x00010] in <41ac6e8c05744e2a820a469a0121192b>:0 
+  at UnityEngine.Rigidbody.set_mass (System.Single value) [0x00006] in <d2c5e99d51eb488f922168c3b8c0179d>:0 
+  at MMDPlayerForVR.PmxImporter.Builders.PmxPhysicsBuilder.Build (MMDPlayerForVR.PmxImporter.Core.PmxDocument doc, UnityEngine.Transform armatureRoot) [0x000c3] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxImporter\Builders\PmxPhysicsBuilder.cs:40 
+  at MMDPlayerForVR.PmxImporter.PmxImporterPipeline.ImportAsync (System.String filePath) [0x00286] in C:\Users\GabuGabuNoMi\Documents\Git\MMDPlayerForVR\Assets\Scripts\PmxImporter\PmxImporterPipeline.cs:76 
+UnityEngine.Debug:LogError (object)
+MMDPlayerForVR.PmxImporter.PmxImporterPipeline/<ImportAsync>d__6:MoveNext () (at Assets/Scripts/PmxImporter/PmxImporterPipeline.cs:82)
+System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<MMDPlayerForVR.PmxImporter.Core.PmxDocument>:SetResult (MMDPlayerForVR.PmxImporter.Core.PmxDocument)
+MMDPlayerForVR.PmxImporter.Parsers.PmxParser/<ParseAsync>d__1:MoveNext () (at Assets/Scripts/PmxImporter/Parsers/PmxParser.cs:16)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
+
+---
+
+[PmxRuntimeLoader] Import failed. Please check the console logs for details.
+UnityEngine.Debug:LogError (object)
+MMDPlayerForVR.PmxImporter.PmxRuntimeLoader/<LoadModelAsync>d__5:MoveNext () (at Assets/Scripts/PmxImporter/PmxRuntimeLoader.cs:75)
+System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<UnityEngine.GameObject>:SetResult (UnityEngine.GameObject)
+MMDPlayerForVR.PmxImporter.PmxImporterPipeline/<ImportAsync>d__6:MoveNext () (at Assets/Scripts/PmxImporter/PmxImporterPipeline.cs:85)
+System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<MMDPlayerForVR.PmxImporter.Core.PmxDocument>:SetResult (MMDPlayerForVR.PmxImporter.Core.PmxDocument)
+MMDPlayerForVR.PmxImporter.Parsers.PmxParser/<ParseAsync>d__1:MoveNext () (at Assets/Scripts/PmxImporter/Parsers/PmxParser.cs:16)
+UnityEngine.UnitySynchronizationContext:ExecuteTasks ()
