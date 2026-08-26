@@ -1,0 +1,1271 @@
+# MMD VR Fureai App Coding Standards
+
+## 1. Purpose
+
+These coding and design standards define the principles for developing and maintaining the MMD VR Fureai App as a long-term project.
+
+The current requirements and technology choices are not treated as permanent assumptions.
+
+The requirements document represents the current direction of the project. During development, the following changes may occur:
+
+- Changes to the MMD model import method
+- Changes to external libraries or SDKs
+- Changes to the VR/XR SDK
+- Changes to the physics implementation
+- Expansion from editor-time import to runtime import
+- Support for formats other than MMD
+- Changes to UI and interaction methods
+- Changes to performance requirements
+- Additional features in Phase 2 and beyond
+
+Therefore, the fundamental principle of this project is:
+
+> **Prioritize code that can be changed over code that merely works today.**
+
+---
+
+# 2. Core Principles
+
+## 2.1 Design for Change
+
+When implementing a feature, always ask:
+
+> "Is this code likely to change in the future?"
+
+The following should be treated as likely to change:
+
+- External libraries
+- SDKs
+- Model loaders
+- Physics systems
+- XR input
+- Model formats
+- Save-data formats
+- UI
+- Game rules
+- Performance optimization methods
+
+Components that are likely to change should not be directly coupled to the core application logic.
+
+---
+
+## 2.2 Prefer Extension Over Modification
+
+Whenever possible, prefer extending an existing system rather than repeatedly modifying existing code.
+
+Bad:
+
+```csharp
+if (modelType == ModelType.Mmd)
+{
+    // MMD-specific processing
+}
+else if (modelType == ModelType.Vrm)
+{
+    // VRM-specific processing
+}
+```
+
+Every new model type requires changes to existing code.
+
+Better:
+
+```csharp
+public interface IModelLoader
+{
+    bool CanLoad(ModelSource source);
+    ModelData Load(ModelSource source);
+}
+```
+
+New formats can be added by implementing `IModelLoader`.
+
+```text
+PMXLoader
+VRMLoader
+GltfLoader
+```
+
+Prefer designs where new functionality can be added without modifying the existing core system.
+
+---
+
+# 3. Separate Requirements from Implementation
+
+Do not unnecessarily embed the technologies specified in the requirements document directly into the application's core code.
+
+The current project direction includes technologies such as MMD for Unity and Magica Cloth 2, but these may be replaced in the future.
+
+Prefer:
+
+```text
+Game Logic
+    ↓
+Abstraction / Interface
+    ↓
+External Library
+```
+
+Avoid unnecessary direct dependencies such as:
+
+```text
+Game Logic
+    ↓
+MMD for Unity
+```
+
+---
+
+# 4. External Library Dependencies
+
+## 4.1 Do Not Leak External Types
+
+Avoid using external-library-specific types throughout the application.
+
+Bad:
+
+```csharp
+public void ApplyModel(MmdForUnityModel model)
+{
+}
+```
+
+Changing MMD for Unity could then require changes across many classes.
+
+Prefer project-owned types:
+
+```csharp
+public void ApplyModel(ModelData model)
+{
+}
+```
+
+---
+
+## 4.2 Use Adapters
+
+When an external library API must be used, isolate it behind an Adapter or Wrapper.
+
+```text
+Game
+ └─ Model System
+      └─ IModelLoader
+           └─ MmdForUnityModelLoader
+                └─ MMD for Unity
+```
+
+If the external library changes, the goal should be to modify the Adapter layer rather than the entire application.
+
+---
+
+# 5. Separate Responsibilities
+
+Follow the single-responsibility principle.
+
+Do not concentrate unrelated functionality in a single Unity `MonoBehaviour`.
+
+Avoid:
+
+```text
+PlayerController
+ ├─ Input
+ ├─ Movement
+ ├─ Model Interaction
+ ├─ UI
+ ├─ Sound
+ ├─ Save
+ └─ External SDK Processing
+```
+
+Prefer separation such as:
+
+```text
+PlayerInput
+PlayerMovement
+ModelInteraction
+PlayerUI
+SaveSystem
+XRInputAdapter
+```
+
+A `MonoBehaviour` should primarily connect Unity objects and lifecycle events to application logic rather than becoming a container for every related feature.
+
+---
+
+# 6. Do Not Create God Objects
+
+Avoid classes that accumulate unrelated responsibilities over time.
+
+For example:
+
+```text
+GameManager
+ ├─ Game State
+ ├─ Model Loading
+ ├─ UI
+ ├─ Audio
+ ├─ Save Data
+ ├─ XR Input
+ └─ Physics
+```
+
+If a class begins to manage multiple unrelated concerns, split it into smaller components.
+
+---
+
+# 7. Dependency Direction
+
+Keep dependencies understandable and preferably one-directional.
+
+A general target is:
+
+```text
+Presentation / Unity
+        ↓
+Application
+        ↓
+Domain
+```
+
+Do not force every part of the project into a strict Clean Architecture structure.
+
+The important goal is:
+
+> **Changing Unity or an external SDK should not require large-scale changes to the core game logic.**
+
+---
+
+# 8. Interfaces
+
+Use interfaces where implementation replacement is reasonably likely.
+
+Candidates include:
+
+- Model Loader
+- Input
+- Save / Load
+- Model Repository
+- Physics Controller
+- Animation Controller
+- External SDK integrations
+- File access
+- Time providers
+- Random number providers
+- Networking
+
+However:
+
+> **Do not create interfaces merely for the sake of creating interfaces.**
+
+Use an interface when there is a real reason to separate a contract from its implementation.
+
+---
+
+# 9. Timing of Abstraction
+
+Do not over-engineer from the beginning.
+
+A preferred process is:
+
+```text
+Concrete Implementation
+        ↓
+Identify Responsibilities
+        ↓
+Identify Change Points
+        ↓
+Introduce Abstraction Where Necessary
+```
+
+Do not create large numbers of interfaces, factories, or abstraction layers solely because something might change someday.
+
+Distinguish between:
+
+- Designing for future change
+- Designing for hypothetical requirements
+
+---
+
+# 10. Separate Data and Processing
+
+Separate configuration data, runtime state, and processing where appropriate.
+
+For example:
+
+```text
+ModelData
+ModelRuntime
+ModelController
+```
+
+should have clearly distinguishable responsibilities.
+
+Use `ScriptableObject` for configuration or shared project data when appropriate.
+
+Do not use `ScriptableObject` as an unrestricted global state container.
+
+---
+
+# 11. SerializeField
+
+Use `[SerializeField]` for private fields that must be configured through the Unity Inspector.
+
+Prefer:
+
+```csharp
+[SerializeField]
+private SomeType _someValue;
+```
+
+over:
+
+```csharp
+public SomeType SomeValue;
+```
+
+Do not expose fields publicly merely for Inspector configuration.
+
+If external access is required, expose only the necessary API through properties or methods.
+
+---
+
+# 12. Minimize Public APIs
+
+Do not expose internal state unnecessarily.
+
+Prefer the narrowest appropriate access level:
+
+```text
+private
+↓
+protected
+↓
+internal
+↓
+public
+```
+
+Making something `public` means creating part of the class's external API.
+
+A public API should therefore be intentional and kept as small as practical.
+
+---
+
+# 13. Make State Changes Explicit
+
+Avoid allowing external classes to directly modify internal state.
+
+Bad:
+
+```csharp
+public bool IsGrabbed;
+```
+
+Better:
+
+```csharp
+public bool IsGrabbed { get; private set; }
+
+public void Grab()
+{
+    IsGrabbed = true;
+}
+
+public void Release()
+{
+    IsGrabbed = false;
+}
+```
+
+When rules are associated with a state change, keep those rules within the operation that changes the state.
+
+---
+
+# 14. Avoid Magic Numbers
+
+Do not place unexplained values directly in logic.
+
+Bad:
+
+```csharp
+if (distance > 0.15f)
+{
+}
+```
+
+Better:
+
+```csharp
+private const float INTERACTION_DISTANCE = 0.15f;
+```
+
+If a value is expected to change as part of balancing or configuration, consider moving it into configuration data such as a `ScriptableObject`.
+
+Do not create constants unnecessarily when the value has no meaningful semantic identity.
+
+---
+
+# 15. Avoid Excessive Enum-Based Logic
+
+Enums are appropriate for simple states.
+
+However, if logic becomes:
+
+```csharp
+if (state == State.A)
+{
+}
+else if (state == State.B)
+{
+}
+else if (state == State.C)
+{
+}
+```
+
+and continues to grow, consider a State Pattern or another suitable design.
+
+If adding a state repeatedly requires modifying many existing methods, review the design.
+
+---
+
+# 16. Prevent Conditional Branch Explosion
+
+When code repeatedly grows into structures such as:
+
+```csharp
+if (type == Type.A)
+{
+}
+else if (type == Type.B)
+{
+}
+else if (type == Type.C)
+{
+}
+else if (type == Type.D)
+{
+}
+```
+
+review the design.
+
+Especially avoid designs where:
+
+> Adding a new type always requires modifying existing core classes.
+
+Consider Strategy, Factory, Polymorphism, Registry, or another appropriate approach.
+
+Do not replace simple, clear conditionals with design patterns unnecessarily.
+
+---
+
+# 17. Localize Unity Events
+
+Use Unity lifecycle methods such as `Update`, `FixedUpdate`, and collision callbacks only where necessary.
+
+Do not distribute large amounts of game logic across many `Update()` methods.
+
+Prefer:
+
+```text
+Unity Event
+    ↓
+Controller
+    ↓
+Application Logic
+```
+
+where practical.
+
+---
+
+# 18. Minimize Update Processing
+
+Do not put work into `Update()` merely because it is convenient.
+
+Prefer:
+
+- Event-driven processing
+- Processing only when needed
+- Coroutines
+- Physics callbacks
+- Input System events
+- `Update()` only when continuous per-frame processing is actually required
+
+The project targets at least 72 FPS, ideally 90 FPS, on Quest 3. Therefore, unnecessary per-frame processing must be treated carefully.
+
+---
+
+# 19. Balance Performance and Design
+
+Do not destroy the overall architecture simply for unmeasured performance gains.
+
+Use this process:
+
+```text
+Measure
+ ↓
+Identify Bottleneck
+ ↓
+Optimize the Necessary Area
+ ↓
+Review Architectural Impact
+```
+
+Performance optimization should be based on actual measurements whenever practical.
+
+If an optimization intentionally makes the architecture less clean, document why it was necessary.
+
+---
+
+# 20. Design the Model System for Future Formats
+
+The current project focuses on MMD/PMX, while future requirements may include VRM, glTF, and other formats.
+
+Do not expose MMD-specific concepts throughout the entire application.
+
+Prefer:
+
+```text
+PMX
+ ↓
+MMD Loader
+ ↓
+ModelData
+ ↓
+Model System
+```
+
+A future format should be able to follow:
+
+```text
+VRM
+ ↓
+VRM Loader
+ ↓
+ModelData
+```
+
+without requiring major changes to the core Model System.
+
+---
+
+# 21. Import System Design
+
+Phase 1 currently focuses on editor-time import.
+
+Phase 2 may require runtime model importing.
+
+Therefore, do not unnecessarily spread editor-only APIs throughout the application.
+
+Prefer a structure conceptually similar to:
+
+```text
+Editor Importer
+Runtime Importer
+       ↓
+Common ModelData
+       ↓
+Model System
+```
+
+Phase 1 does not need to implement full runtime import support.
+
+The goal is simply to avoid making future runtime support unnecessarily difficult.
+
+---
+
+# 22. Isolate the Physics System
+
+The current direction uses Magica Cloth 2, but physics implementation may change.
+
+Keep game-level requirements separate from library-specific implementation.
+
+For example:
+
+```text
+Interaction
+    ↓
+Physics Abstraction
+    ↓
+Magica Cloth 2
+```
+
+Distinguish between:
+
+> "The cloth should react to applied force."
+
+and:
+
+> "Magica Cloth 2 requires this specific API call."
+
+The first is an application requirement. The second is an implementation detail.
+
+---
+
+# 23. Isolate XR Input
+
+Hand tracking and controller input may change over time.
+
+Game logic should preferably operate on meaningful concepts such as:
+
+```text
+"The hand is at this position."
+"The user is grabbing this target."
+```
+
+rather than directly depending on Meta XR SDK-specific APIs.
+
+Keep XR SDK-specific logic localized where practical.
+
+---
+
+# 24. Naming
+
+Naming and formatting rules are primarily defined by `.editorconfig`.
+
+The following conventions should be maintained consistently:
+
+- Classes, methods, and properties: `PascalCase`
+- Interfaces: `IPascalCase`
+- Private fields: `_camelCase`
+- Local variables and parameters: `camelCase`
+- Constants: `UPPER_SNAKE_CASE`
+
+When a conflict occurs, the `.editorconfig` should be treated as the authoritative source for formatting and naming rules.
+
+---
+
+# 25. Comments
+
+Comments should explain:
+
+> **Why the code is implemented this way**
+
+rather than merely explaining what the code does.
+
+Bad:
+
+```csharp
+// Increment the counter
+_count++;
+```
+
+Better:
+
+```csharp
+// Use Update instead of FixedUpdate to minimize perceived input latency on Quest.
+_count++;
+```
+
+Especially document the reasoning behind:
+
+- Unusual implementations
+- Performance optimizations
+- External library limitations
+- SDK workarounds
+- Temporary implementations
+- Intentional architectural compromises
+
+---
+
+# 26. TODO Comments
+
+Do not use TODO comments as vague reminders.
+
+Bad:
+
+```csharp
+// TODO: Fix this later
+```
+
+Better:
+
+```csharp
+// TODO: Re-evaluate importer responsibilities when Runtime Import is implemented.
+// This implementation is currently limited to Phase 1 Editor Import.
+```
+
+When possible, associate TODOs with an issue or design document.
+
+---
+
+# 27. Exception Handling
+
+Do not silently swallow exceptions.
+
+Bad:
+
+```csharp
+try
+{
+    Load();
+}
+catch
+{
+}
+```
+
+If an exception is intentionally ignored, the reason must be clear.
+
+Do not use exceptions for ordinary control flow.
+
+---
+
+# 28. Null Handling
+
+Clearly distinguish between references that may be null and references that must never be null.
+
+For Inspector-configured references:
+
+```csharp
+[SerializeField]
+private ModelController _modelController;
+```
+
+validate critical dependencies during initialization where appropriate.
+
+If a required dependency is missing, produce a clear and early error.
+
+---
+
+# 29. Centralize Dependency Construction
+
+Do not let every class arbitrarily construct its dependencies.
+
+Avoid:
+
+```csharp
+private readonly ModelLoader _loader = new ModelLoader();
+```
+
+When appropriate, use dependency injection, factories, or another composition mechanism so that dependency construction has a clear location.
+
+However, do not lock the project to a specific DI framework through this coding standard while the technology stack is still under evaluation.
+
+---
+
+# 30. Prefer Testable Logic
+
+When possible, design logic so that it can be instantiated and tested without requiring a Unity Scene or GameObject.
+
+For example:
+
+```csharp
+public class ModelValidator
+{
+    public ValidationResult Validate(ModelData model)
+    {
+        // ...
+    }
+}
+```
+
+Prioritize this approach for:
+
+- Numerical calculations
+- Validation
+- State transitions
+- Model data conversion
+- Configuration validation
+- Import-data validation
+- Interaction rules
+
+---
+
+# 31. Keep Classes Manageable
+
+Review class decomposition when:
+
+- Fields become numerous
+- Public methods become numerous
+- `if` / `switch` statements continue to grow
+- Multiple unrelated responsibilities exist
+- There are multiple reasons for the class to change
+- One part of the class changes frequently while others do not
+- Testing becomes difficult
+- The class name ends in `Manager` without clearly describing its responsibility
+
+---
+
+# 32. Avoid Manager Class Proliferation
+
+Do not create vague classes such as:
+
+```text
+GameManager
+ModelManager
+UIManager
+DataManager
+SystemManager
+```
+
+merely because something needs to be managed.
+
+Prefer names that describe the actual responsibility:
+
+```text
+ModelLoader
+ModelRepository
+ModelSpawner
+ModelController
+ModelSelectionPresenter
+```
+
+The name should help a developer understand what the class does without reading its implementation.
+
+---
+
+# 33. Singleton Usage
+
+Do not use Singleton as the default solution for shared access.
+
+Avoid unnecessary patterns such as:
+
+```csharp
+SomeManager.Instance
+```
+
+from arbitrary parts of the application.
+
+If Singleton is used, there should be a clear reason such as:
+
+- There must truly be only one instance
+- Global access is genuinely required
+- Lifetime can be clearly controlled
+
+---
+
+# 34. Minimize Static State
+
+Avoid global mutable state through static fields whenever possible.
+
+Static state can:
+
+- Make testing difficult
+- Create initialization-order dependencies
+- Persist unexpectedly across Scene changes
+- Hide dependencies
+
+Do not use static state as a convenient replacement for proper dependency management.
+
+---
+
+# 35. Choose Design Patterns by Problem
+
+Do not use design patterns for their own sake.
+
+Examples:
+
+- Need interchangeable implementations → Strategy
+- Need to hide object creation → Factory
+- Need to adapt an external API → Adapter
+- Need to separate state-specific behavior → State
+- Need to notify multiple systems → Observer
+
+The principle is:
+
+> **Choose a pattern based on the problem being solved, not the pattern you want to use.**
+
+---
+
+# 36. Do Not Over-Couple Because "There Is Only One Type"
+
+A system having only one implementation today does not mean it should be tightly coupled if additional implementations are reasonably likely.
+
+However, do not automatically abstract every one-implementation class.
+
+The goal is:
+
+> **When a new implementation is added, the required modification points should be clear and limited.**
+
+---
+
+# 37. Do Not Hard-Code Unconfirmed Technology Decisions
+
+The requirements document contains unresolved decisions such as:
+
+- Current maintenance status of MMD for Unity
+- Potential migration to Blender-based import
+- Application SpaceWarp
+- OpenXR StickControl
+- The concrete use of Scene functionality
+
+Do not treat provisional technologies as permanent architectural requirements.
+
+When a technology is still being evaluated, establish a boundary that allows it to be replaced.
+
+---
+
+# 38. Separate Prototype Code from Production Code
+
+Prototype code is allowed to prioritize fast validation.
+
+For example:
+
+```text
+Fastest implementation for validation
+```
+
+may be appropriate during technical investigation.
+
+However, after validation, review the code before treating it as part of the long-term architecture.
+
+Preferred process:
+
+```text
+Prototype
+ ↓
+Validate
+ ↓
+Identify Responsibilities
+ ↓
+Review Dependencies
+ ↓
+Production Implementation
+```
+
+---
+
+# 39. Do Not Directly Promote Technical Test Code
+
+Code written solely to test an SDK, package, or technology should be kept separate from the production architecture.
+
+For example:
+
+```text
+Tests/
+Prototype/
+Sandbox/
+```
+
+can be used to distinguish investigation code from production systems.
+
+Do not allow temporary test code to become an accidental architectural dependency.
+
+---
+
+# 40. Minimize Change Impact
+
+When implementing a feature, ask:
+
+> "If this requirement changes, how many classes will need to be modified?"
+
+The preferred result is:
+
+```text
+Requirement Change
+        ↓
+One or a Small Number of Implementations
+        ↓
+Existing Systems Remain Stable
+```
+
+If a small requirement change requires modifications across many unrelated classes, review the design.
+
+---
+
+# 41. Separate Different Reasons for Change
+
+Do not mix code that changes for unrelated reasons.
+
+For example, avoid putting all of the following into one class:
+
+```text
+UI changes
+Physics changes
+Model changes
+Input changes
+```
+
+Ask:
+
+> "What kind of change would cause this class to need modification?"
+
+If there are multiple unrelated answers, consider separating the responsibilities.
+
+---
+
+# 42. Design for Data Format Changes
+
+Do not tightly couple internal logic to a particular save or model data format.
+
+Prefer:
+
+```text
+External Data
+ ↓
+Deserializer
+ ↓
+Internal Data
+ ↓
+Game Logic
+```
+
+This makes future data format changes easier to manage.
+
+---
+
+# 43. Treat APIs as Changeable
+
+Not only external SDKs but also internal class APIs may change.
+
+Every additional public member increases the surface area that other code can depend on.
+
+Therefore:
+
+> **Keep public APIs small so that internal implementations remain replaceable.**
+
+---
+
+# 44. Treat Refactoring as Part of Development
+
+Perfect architecture cannot be created before all requirements and technical constraints are known.
+
+Long-term development should therefore follow:
+
+```text
+Implement
+ ↓
+Validate
+ ↓
+Discover Problems
+ ↓
+Refactor
+ ↓
+Extend
+```
+
+Do not treat working code as untouchable.
+
+When development reveals a design problem, improve the design rather than continuously adding workarounds around it.
+
+---
+
+# 45. Do Not Worship the Architecture
+
+Following design principles is not the objective.
+
+Avoid excessive use of:
+
+- Interfaces
+- Factories
+- Abstract classes
+- Dependency injection
+- Design patterns
+
+if they make the project harder to understand or modify.
+
+The actual objective is:
+
+> **Make likely changes easy to make.**
+
+Do not over-engineer components that are unlikely to change.
+
+---
+
+# 46. Record Important Design Decisions
+
+Important architectural decisions should be recorded in documentation, not only encoded in source code.
+
+Record decisions such as:
+
+- Why a technology was selected
+- Why an alternative was rejected
+- Why an abstraction exists
+- Why a design compromise was made
+- Whether the implementation is temporary
+- Known limitations
+- Conditions under which the decision should be revisited
+
+When technology choices change, do not lose the reasoning behind previous decisions.
+
+---
+
+# 47. Do Not Treat the Requirements Document as Absolute
+
+The requirements document represents the current understanding of the project.
+
+Long-term development should not treat it as an immutable one-way pipeline:
+
+```text
+Requirements
+ ↓
+Design
+ ↓
+Implementation
+```
+
+Implementation and technical investigation may reveal new constraints.
+
+In such cases:
+
+```text
+Implementation
+ ↓
+Problem Discovery
+ ↓
+Design Review
+ ↓
+Requirements Review
+```
+
+is acceptable.
+
+However, implementation convenience alone should not be used as a reason to silently change requirements.
+
+---
+
+# 48. Prioritize Changeability Over Architectural Purity
+
+The most important goal is not to follow a particular architecture perfectly.
+
+The goal is to keep the project adaptable.
+
+For example, this project may eventually need to change:
+
+```text
+MMD for Unity
+        ↓
+Blender / another importer
+```
+
+or:
+
+```text
+Editor Import
+        ↓
+Runtime Import
+```
+
+or:
+
+```text
+MMD
+        ↓
+MMD + VRM + glTF
+```
+
+The code should make these changes possible without requiring a rewrite of the entire application.
+
+---
+
+# 49. Code Review Checklist
+
+During code review, check not only style but also architecture.
+
+### Responsibility
+
+- [ ] Is the class responsibility clear?
+- [ ] Has the class accumulated too many responsibilities?
+- [ ] Is Unity-specific logic separated from general logic where practical?
+
+### Dependencies
+
+- [ ] Is there unnecessary dependency on an external library?
+- [ ] Is the dependency direction reasonable?
+- [ ] Is unnecessary Singleton/static state being introduced?
+
+### Extensibility
+
+- [ ] Can new types be added without modifying large amounts of existing code?
+- [ ] Are conditional branches likely to grow?
+- [ ] Can another model format be supported reasonably?
+
+### Changeability
+
+- [ ] Is the impact of a requirement change small?
+- [ ] Could an external SDK be replaced without major changes?
+- [ ] Could the data format be changed?
+
+### Testability
+
+- [ ] Can important logic be tested independently?
+- [ ] Is the implementation unnecessarily dependent on a Unity Scene?
+
+### Performance
+
+- [ ] Is unnecessary per-frame processing being introduced?
+- [ ] Has Quest 3 performance been considered?
+- [ ] Does optimization unnecessarily damage the architecture?
+
+---
+
+# 50. Final Principles
+
+The following rules are the highest-priority principles of this project:
+
+1. **Design for future change, not only current requirements.**
+2. **Do not directly couple likely-to-change technologies to core logic.**
+3. **Localize dependencies on external libraries and SDKs.**
+4. **Keep responsibilities small and clear.**
+5. **Keep public APIs as small as practical.**
+6. **Separate code according to its reasons for change.**
+7. **Prefer extension when adding new functionality.**
+8. **Do not over-engineer for hypothetical requirements.**
+9. **Keep provisional technology choices replaceable.**
+10. **Base performance optimization on measurements whenever practical.**
+11. **Separate prototype and investigation code from production architecture.**
+12. **Record important architectural decisions and their reasoning.**
+13. **Treat refactoring as a normal part of long-term development.**
+14. **Prioritize understandable, maintainable, and changeable code over merely working code.**
+
+---
+
+# Appendix A: Pre-Implementation Checklist
+
+Before implementing a new class or system:
+
+- [ ] Can the responsibility of this class be explained in one sentence?
+- [ ] What kinds of changes would require modifying this class?
+- [ ] Can Unity-specific processing be separated from general logic?
+- [ ] Can external-library dependencies be localized?
+- [ ] Is the implementation likely to be replaced?
+- [ ] Would adding a new type require modifying a large amount of existing code?
+- [ ] Is each public API member actually necessary?
+- [ ] Does this really need to be static or a Singleton?
+- [ ] Can the logic be tested independently?
+- [ ] Is per-frame processing really necessary?
+- [ ] Am I over-engineering solely for a hypothetical future requirement?
+
+# Appendix B: Change Review Checklist
+
+When a requirement changes:
+
+- [ ] Does the existing implementation really need to be modified?
+- [ ] Can the change be implemented as an extension?
+- [ ] What is the impact area?
+- [ ] Does the change cross an external-library boundary?
+- [ ] Are multiple unrelated classes now required to change?
+- [ ] Does this change justify a new abstraction?
+- [ ] Is the implementation still consistent with the requirements and design documentation?
+- [ ] Does the change unnecessarily reduce future flexibility?
+
+---
+
+# Appendix C: Control Structure Formatting
+
+Curly braces `{}` must always be used for control structures such as `if`, `for`, `while`, etc., even if the block contains only a single line of code.
+Omitting braces can easily lead to bugs when adding new lines later, so this practice is strictly prohibited in this project.
+
+Bad:
+```csharp
+if (isReady) return;
+
+if (count > 0)
+    count--;
+```
+
+Good:
+```csharp
+if (isReady)
+{
+    return;
+}
+
+if (count > 0)
+{
+    count--;
+}
+```
