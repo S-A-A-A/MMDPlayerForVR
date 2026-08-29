@@ -40,9 +40,11 @@ namespace MMDPlayerForVR.PmxImporter
 
         public async Task<GameObject> ImportAsync(string filePath)
         {
+            string currentStage = "初期化";
             try
             {
                 // Stage 1: Parse Binary (Background Thread)
+                currentStage = "PMXバイナリ解析";
                 if (_logService != null)
                 {
                     _logService.Log("Parsing PMX binary...");
@@ -50,6 +52,7 @@ namespace MMDPlayerForVR.PmxImporter
                 PmxDocument doc = await _parser.ParseAsync(filePath);
 
                 // Stage 3: Build Bones (Main Thread/Coroutine)
+                currentStage = "ボーン構築";
                 if (_logService != null)
                 {
                     _logService.Log("Building bones...");
@@ -60,6 +63,7 @@ namespace MMDPlayerForVR.PmxImporter
                 Matrix4x4[] bindposes = boneResult.bindposes;
 
                 // Stage 2: Build Mesh (Main Thread/Coroutine)
+                currentStage = "メッシュ構築";
                 if (_logService != null)
                 {
                     _logService.Log("Building mesh...");
@@ -73,6 +77,7 @@ namespace MMDPlayerForVR.PmxImporter
                 mesh.bindposes = bindposes;
 
                 // Stage 4: Build Materials (Main Thread/Coroutine)
+                currentStage = "マテリアル構築";
                 if (_logService != null)
                 {
                     _logService.Log("Building materials...");
@@ -81,6 +86,7 @@ namespace MMDPlayerForVR.PmxImporter
                 Material[] materials = await _materialBuilder.BuildAsync(doc, basePath);
 
                 // Assemble GameObject
+                currentStage = "GameObjectアセンブル";
                 if (_logService != null)
                 {
                     _logService.Log("Assembling GameObject...");
@@ -100,12 +106,14 @@ namespace MMDPlayerForVR.PmxImporter
                 smr.updateWhenOffscreen = true;
 
                 // Stage 5: Build Physics (Main Thread)
+                currentStage = "物理演算構築";
                 if (_logService != null)
                 {
                     _logService.Log("Building physics...");
                 }
                 _physicsBuilder.Build(doc, rootBone, boneTransforms);
 
+                currentStage = "完了";
                 if (_logService != null)
                 {
                     _logService.Log("Model import completed successfully!");
@@ -114,11 +122,12 @@ namespace MMDPlayerForVR.PmxImporter
             }
             catch (Exception ex)
             {
+                string errorMessage = $"ステージ「{currentStage}」で失敗: {ex.GetType().Name}: {ex.Message}";
                 if (_logService != null)
                 {
-                    _logService.LogError($"Failed to import {filePath}");
+                    _logService.LogError(errorMessage);
                 }
-                Debug.LogError($"[PmxImporter] Failed to import {filePath}: {ex.Message}\n{ex.StackTrace}");
+                Debug.LogError($"[PmxImporter] {errorMessage}\n{ex.StackTrace}");
                 return null;
             }
         }
