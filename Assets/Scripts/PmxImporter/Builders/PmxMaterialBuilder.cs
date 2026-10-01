@@ -16,8 +16,17 @@ namespace MMDPlayerForVR.PmxImporter.Builders
             for (int i = 0; i < doc.Textures.Length; i++)
             {
                 // PMX texture paths often use Windows backslashes
-                string texPath = Path.Combine(basePath, doc.Textures[i].Replace('\\', '/'));
-                textures[i] = LoadTexture(texPath);
+                string texRelative = doc.Textures[i].Replace('\\', '/').TrimStart('/');
+                string texPath;
+                if (basePath.Contains("://"))
+                {
+                    texPath = basePath.EndsWith("/") ? basePath + texRelative : basePath + "/" + texRelative;
+                }
+                else
+                {
+                    texPath = Path.Combine(basePath, texRelative);
+                }
+                textures[i] = await LoadTextureAsync(texPath);
             }
 
             // 2. Create Materials
@@ -77,17 +86,22 @@ namespace MMDPlayerForVR.PmxImporter.Builders
             return await Task.FromResult(materials);
         }
 
-        private Texture2D LoadTexture(string path)
+        private async Task<Texture2D> LoadTextureAsync(string path)
         {
-            if (!File.Exists(path))
+            if (!await AsyncFileLoader.ExistsAsync(path))
             {
-                Debug.LogWarning($"[PmxMaterialBuilder] Texture not found: {path}");
-                return CreateFallbackTexture();
+                Debug.LogWarning($"[PmxMaterialBuilder] Texture not found (or HEAD failed): {path}");
+                // We'll proceed to try loading anyway just in case HEAD failed but GET works
             }
 
             try
             {
-                byte[] bytes = File.ReadAllBytes(path);
+                byte[] bytes = await AsyncFileLoader.ReadAllBytesAsync(path);
+                if (bytes == null)
+                {
+                    return CreateFallbackTexture();
+                }
+
                 Texture2D tex = new Texture2D(2, 2);
                 if (tex.LoadImage(bytes))
                 {
